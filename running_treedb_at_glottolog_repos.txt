@@ -1,0 +1,23 @@
+#This is a readme file for Hedvig next time she needs to render the Glottolog table form treedb
+
+# first the glottolog repos needs to be set up properly in your clone
+
+# if you're running on another machine than your laptop, you may need to run these first
+ 
+# pip install -r requirements.txt
+# python setup.py develop
+# pip install pandas
+
+
+#then navigate to this folder in the glottolog repos glottolog/scripts
+in terminal ni bash run
+
+# https://github.com/clld/glottolog/tree/master/scripts
+
+# in terminal
+# python -i treedb.py
+
+# the -i option is going to leave you in the python enviroment. Once that has finished running, you run
+
+# >>> df.to_csv('treedb.csv', encoding='utf-8')
+
