@@ -89,7 +89,8 @@ Glottolog_families <- Glottolog_with_family_with_isolates %>%
 Glottolog_with_family_with_isolates %>% 
   filter(level == "dialect") %>% 
   dplyr::select(-Longitude, -Latitude, -Macroarea, -Family_name, -Family_ID, -countries, -Parent_ID, -desc_status) %>%
-  left_join(Glottolog_dialect_parents) -> Glottolog_dialects_enriched
+  left_join(Glottolog_dialect_parents) %>% 
+  mutate(Parent_ID = Language_level_ID) -> Glottolog_dialects_enriched
 
 rm(Glottolog_dialect_parents)
 
@@ -106,7 +107,8 @@ Glottolog_languages_and_dialects_enriched %>%
   mutate(Language_level_name = Name) %>% 
   mutate(Language_level_ID = Glottocode) %>% 
   full_join(filter(Glottolog_languages_and_dialects_enriched, level == "dialect")) %>% 
-  full_join(Glottolog_families) -> Glottolog_language_leveled
+  full_join(Glottolog_families) %>% 
+  dplyr::select(-path, -countries, -Family_ID)-> Glottolog_language_leveled
 
 rm(Glottolog_families, Glottolog_languages_and_dialects_enriched)
 
