@@ -171,4 +171,4 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
 
 rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
 
-write_tsv(Glottolog_language_leveled_with_autotyp_area, path = paste0("Glottolog_Heti_enhanced_", Sys.Date(), ".tsv"))
+write_tsv(Glottolog_language_leveled_with_autotyp_area, path = paste0("Glottolog_lookup_table_Heti_enhanced_", Sys.Date(), ".tsv"))
