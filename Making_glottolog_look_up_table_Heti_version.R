@@ -66,7 +66,9 @@ rm(Glottolog)
 Glottolog_with_family %>% 
   filter(level == "language") %>% 
   filter(is.na(Parent_ID)) %>% 
-  mutate(Family_name = "Isolate") -> Isolates
+  rownames_to_column("index") %>% 
+  mutate(Isolate = "Isolate") %>% 
+  unite(col = Family_name, ... = c(Isolate, index))-> Isolates
 
 Glottolog_with_family %>% 
   filter(level != "language"|!is.na(Parent_ID)) %>% 
@@ -169,4 +171,4 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
 
 rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
 
-write_tsv(Glottolog_language_leveled_with_autotyp_area, path = paste0("Glottolog_Heti_enhanced", Sys.Date(), ".tsv"))
+write_tsv(Glottolog_language_leveled_with_autotyp_area, path = paste0("Glottolog_Heti_enhanced_", Sys.Date(), ".tsv"))
