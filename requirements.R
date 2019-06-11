@@ -1,4 +1,11 @@
-install.packages("tidyverse")
-install.packages("stringr")
-install.packages("jsonlite")
-install.packages("fields")
+# Please run this script first to make sure you have all the necessary packages 
+# installed for running the rest of the scripts in this R project
+
+if (!suppressPackageStartupMessages(require("pacman"))) { install.packages("pacman") }
+
+pacman::p_load(
+  fields, 
+  tidyverse,
+  jsonlite,
+  stringr)
+

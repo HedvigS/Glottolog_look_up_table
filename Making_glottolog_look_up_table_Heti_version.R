@@ -1,7 +1,4 @@
-library(tidyverse)
-library(stringr)
-library(jsonlite)
-library(fields)
+source("requirements.R")
 
 options(stringsAsFactors = FALSE)
 
@@ -11,7 +8,7 @@ options(stringsAsFactors = FALSE)
 #read_csv("../../../../Documents/glottolog/scripts/treedb.csv") %>%
 #  write_tsv("treedb.tsv")
 
-treedb <- read_tsv("treedb.tsv") %>% 
+treedb <- read_csv("treedb.csv") %>% 
   dplyr::select(Glottocode = id, Macroarea =macroareas, Longitude = longitude, Latitude = latitude, Language_level_ID = dialect_language_id, Name = name, path, Family_ID = family_id, level, Parent_ID = parent_id, iso639_3, countries, endangerment_status)
 
 ###MED BUSINES STARTS ####
@@ -172,4 +169,4 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
 
 rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
 
-write_tsv(Glottolog_language_leveled_with_autotyp_area, "Glottolog_all_languoids_Heti_enhanced.tsv")
+write_tsv(Glottolog_language_leveled_with_autotyp_area, path = paste0("Glottolog_Heti_enhanced", Sys.Date(), ".tsv"))
