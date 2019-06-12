@@ -19,7 +19,7 @@ That date is the date when I did the following:
 
 The folder is also zipped up for you for convenience. 
 
-Watch out for the fact that the desc_status and AUTOTYP_area are both rendered from static jsons. The URL's need to change with new versions of glottolog and in case AUTOTYP restructure their repos.
+Watch out for the fact that the desc_status and AUTOTYP_area are both rendered from static files. The URL's need to change with new versions of glottolog and in case AUTOTYP restructure their repos.
 
 **Basic meta-data from Glottolog**
 * Longitude/Latitude
