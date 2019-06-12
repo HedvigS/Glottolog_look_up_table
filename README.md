@@ -5,6 +5,7 @@ This is a small repos with an R script that cobbles together a large tsv sheet w
 The resulting file is basically just a restructuring of what comes out of the treedb.py script from the Glottolog recipes: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py with some added information.
 
 **Important**
+
 The result from this script is a folder with two files. 
 1. Glottolog_lookup_table_Heti_edition.tsv - the actual large table
 2. Glottolog_lookup_meta.txt - short file with the date of when this script was run. 
