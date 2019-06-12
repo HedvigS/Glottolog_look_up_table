@@ -2,7 +2,7 @@
 
 This is a small repos with an R script that cobbles together a large tsv sheet with every languoid in Glottolog (i.e. languages, dialects and families) with various meta data. Besides the "regular" Glottolog meta data (Family, long/lat, Macroarea, Countries, etc) there are also some extra info and modifications, see lists below. 
 
-The resulting file is basically just a restructuring of what comes out of the treedb.py script from the Glottolog recipes: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py with some added information. It's a bit like the "language.csv" file that comes with every version of Glottolog (https://glottolog.org/meta/downloads), just zhujzhed up a bit to my liking.
+The resulting file is basically just a restructuring of what comes out of the treedb.py script from the Glottolog recipes: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py with some added information. It's a bit like the "language.csv" file that comes with every version of Glottolog (https://glottolog.org/meta/downloads), just zhujzhed up a bit to my liking and possible to run of the exact current version of Glottolog instead of just the latest published version.
 
 **Important**
 
