@@ -1,1 +1,1 @@
-This file was created on 2019-06-12 by Hedvig Skirgård based on Glottolog and AUTOTYP data. More information at https://github.com/HedvigS/Glottolog_look_up_table
+This file was created  2019-06-12 by Hedvig Skirgård based on Glottolog and AUTOTYP data. More information at https://github.com/HedvigS/Glottolog_look_up_table

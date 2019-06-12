@@ -66,12 +66,13 @@ rm(Glottolog)
 Glottolog_with_family %>% 
   filter(level == "language") %>% 
   filter(is.na(Parent_ID)) %>% 
-  rownames_to_column("index") %>% 
-  mutate(Isolate = "Isolate") %>% 
-  unite(col = Family_name, ... = c(Isolate, index))-> Isolates
+  mutate(Family_name = Name) %>% 
+  mutate(Family_ID = path) %>% 
+  mutate(Isolate = "yes") -> Isolates
 
 Glottolog_with_family %>% 
   filter(level != "language"|!is.na(Parent_ID)) %>% 
+  mutate(Isolate = "No") %>%  
   rbind(Isolates) -> Glottolog_with_family_with_isolates
 
 rm(Glottolog_with_family, Isolates, Glottolog_family)
@@ -80,14 +81,14 @@ rm(Glottolog_with_family, Isolates, Glottolog_family)
 
 Glottolog_with_family_with_isolates %>% 
   filter(level == "language") %>%
-  select(Language_level_name = Name, Language_level_ID = Glottocode, Longitude, Latitude, Macroarea, Family_name, Family_ID, countries, desc_status) -> Glottolog_dialect_parents
+  select(Language_level_name = Name, Language_level_ID = Glottocode, Longitude, Latitude, Macroarea, Family_name, Family_ID, countries, desc_status, Isolate) -> Glottolog_dialect_parents
 
 Glottolog_families <- Glottolog_with_family_with_isolates %>% 
   filter(level == "family")
 
 Glottolog_with_family_with_isolates %>% 
   filter(level == "dialect") %>% 
-  dplyr::select(-Longitude, -Latitude, -Macroarea, -Family_name, -Family_ID, -countries, -Parent_ID, -desc_status) %>%
+  dplyr::select(-Longitude, -Latitude, -Macroarea, -Family_name, -Family_ID, -countries, -Parent_ID, -desc_status, -Isolate) %>%
   left_join(Glottolog_dialect_parents) %>% 
   mutate(Parent_ID = Language_level_ID) -> Glottolog_dialects_enriched
 
@@ -96,7 +97,7 @@ rm(Glottolog_dialect_parents)
 Glottolog_with_family_with_isolates %>%
   filter(level != "dialect" & level != "family") %>%
   full_join(Glottolog_dialects_enriched) %>% 
-  dplyr::select(Name, Glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea) -> Glottolog_languages_and_dialects_enriched
+  dplyr::select(Name, Glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea, Isolate) -> Glottolog_languages_and_dialects_enriched
 
 rm(Glottolog_dialects_enriched, Glottolog_with_family_with_isolates)
 
@@ -122,7 +123,7 @@ Glottolog_language_leveled$Name %>%
 
 AUTOTYP <- read_csv("https://raw.githubusercontent.com/autotyp/autotyp-data/master/data/Register.csv") %>% 
   dplyr::select(Glottocode, Area, Longitude, Latitude) %>% 
-  filter(Glottocode != "balk1252") %>% #There's a set of languages in autotyp that have more than one area, for now they're just hardcoded excluded
+  filter(Glottocode != "balk1252") %>% #There's a set of languages in autotyp that have more than one area, for now they're just hardcoded excluded in these lines
   filter(Glottocode != "east2295") %>% 
   filter(Glottocode != "indo1316") %>% 
   filter(Glottocode != "kyer1238") %>% 
@@ -176,7 +177,7 @@ dir.create("Glottolog_lookup_table_Hedvig_output")
 
 write_tsv(Glottolog_language_leveled_with_autotyp_area, path = "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_table_Heti_edition.tsv")
 
-cat(paste("This file was created on", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")            
+cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")            
 
 zip(zipfile = "Glottolog_lookup_table_Hedvig_output", files = "Glottolog_lookup_table_Hedvig_output")
             
