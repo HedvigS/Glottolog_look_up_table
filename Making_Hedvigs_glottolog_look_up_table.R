@@ -171,4 +171,12 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
 
 rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
 
-write_tsv(Glottolog_language_leveled_with_autotyp_area, path = paste0("Glottolog_lookup_table_Heti_enhanced_", Sys.Date(), ".tsv"))
+dir.create("Glottolog_lookup_table_Hedvig_output")
+
+
+write_tsv(Glottolog_language_leveled_with_autotyp_area, path = "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_table_Heti_edition.tsv")
+
+cat(paste("This file was created on", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")            
+
+zip(zipfile = "Glottolog_lookup_table_Hedvig_output", files = "Glottolog_lookup_table_Hedvig_output")
+            
