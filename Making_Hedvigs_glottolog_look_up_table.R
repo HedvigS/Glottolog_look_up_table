@@ -11,6 +11,40 @@ options(stringsAsFactors = FALSE)
 treedb <- read_csv("treedb.csv") %>% 
   dplyr::select(Glottocode = id, Macroarea =macroareas, Longitude = longitude, Latitude = latitude, Language_level_ID = dialect_language_id, Name = name, path, Family_ID = family_id, level, Parent_ID = parent_id, iso639_3, countries, endangerment_status)
 
+###  inserting the names of the language families
+top_genetic <- treedb %>% 
+  distinct(Family_ID) %>% 
+  filter(!is.na(Family_ID)) %>% 
+  mutate(top = "top")
+
+treedb %>% 
+  filter(level == "family") %>%
+  select(Family_ID, Family_name = Name, Family_Glottocode = Glottocode) %>%
+  select(Family_ID = Family_Glottocode, Family_name) %>% 
+  full_join(top_genetic)-> Glottolog_family
+
+Glottolog_family %>% 
+  right_join(treedb, by = "Family_ID") %>% 
+  distinct()-> Glottolog_with_family
+
+Glottolog_with_family %>% 
+  filter(level == "language") %>% 
+  filter(is.na(Parent_ID)) %>% 
+  mutate(Family_name_isolates_distinct = Name) %>% 
+  mutate(Top_genetic_unit_ID_isolates_distinct = path) %>% 
+  mutate(Isolate = "Yes") -> Isolates
+
+Glottolog_with_family %>% 
+  filter(level != "language"|!is.na(Parent_ID)) %>% 
+  mutate(Family_name_isolates_distinct = Family_name) %>% 
+  mutate(Top_genetic_unit_ID_isolates_distinct = Family_ID) %>% 
+  mutate(Isolate = "No") %>%  
+  rbind(Isolates) %>% 
+  dplyr::select(-top) -> Glottolog_with_family_with_isolates
+
+rm(Glottolog_with_family, Isolates, Glottolog_family)
+
+
 ###MED BUSINES STARTS ####
 #Here we read in the descriptive status per languoid form Glottolog
 
@@ -38,55 +72,24 @@ Glottolog_json_MED %>%
 
 rm(Glottolog_json_MED)
 
-#Glottolog_MED %>%
-#  write_tsv("Glottolog_MED_from_json.tsv")
-
-#Glottolog_MED <- read_tsv("Glottolog_MED_from_json.tsv", quote = "\"")
-
 #### MED business over ####
 
-treedb %>% 
+Glottolog_with_family_with_isolates %>% 
   left_join(Glottolog_MED) %>%
-  distinct() -> Glottolog
+  distinct() -> Glottolog_with_family_with_isolates_MED
 
-rm(Glottolog_MED, treedb)
-
-###  inserting the names of the language families
-Glottolog %>% 
-  filter(level == "family") %>%
-  select(Family_ID, Family_name = Name, Family_Glottocode = Glottocode) %>%
-  select(Family_ID = Family_Glottocode, Family_name)-> Glottolog_family
-
-Glottolog_family %>% 
-  right_join(Glottolog, by = "Family_ID") %>% 
-  distinct()-> Glottolog_with_family
-
-rm(Glottolog)
-
-Glottolog_with_family %>% 
-  filter(level == "language") %>% 
-  filter(is.na(Parent_ID)) %>% 
-  mutate(Family_name = Name) %>% 
-  mutate(Family_ID = path) %>% 
-  mutate(Isolate = "yes") -> Isolates
-
-Glottolog_with_family %>% 
-  filter(level != "language"|!is.na(Parent_ID)) %>% 
-  mutate(Isolate = "No") %>%  
-  rbind(Isolates) -> Glottolog_with_family_with_isolates
-
-rm(Glottolog_with_family, Isolates, Glottolog_family)
+rm(Glottolog_MED, treedb, Glottolog_with_family_with_isolates)
 
 #putting the macroarea, longitude and latitude and language family of their parents on all dialects
 
-Glottolog_with_family_with_isolates %>% 
+Glottolog_with_family_with_isolates_MED %>% 
   filter(level == "language") %>%
-  select(Language_level_name = Name, Language_level_ID = Glottocode, Longitude, Latitude, Macroarea, Family_name, Family_ID, countries, desc_status, Isolate) -> Glottolog_dialect_parents
+  select(Language_level_name = Name, Language_level_ID = Glottocode, Longitude, Latitude, Macroarea, Family_name, Family_ID, countries, desc_status, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_dialect_parents
 
-Glottolog_families <- Glottolog_with_family_with_isolates %>% 
+Glottolog_families <- Glottolog_with_family_with_isolates_MED %>% 
   filter(level == "family")
 
-Glottolog_with_family_with_isolates %>% 
+Glottolog_with_family_with_isolates_MED %>% 
   filter(level == "dialect") %>% 
   dplyr::select(-Longitude, -Latitude, -Macroarea, -Family_name, -Family_ID, -countries, -Parent_ID, -desc_status, -Isolate) %>%
   left_join(Glottolog_dialect_parents) %>% 
@@ -94,10 +97,10 @@ Glottolog_with_family_with_isolates %>%
 
 rm(Glottolog_dialect_parents)
 
-Glottolog_with_family_with_isolates %>%
+Glottolog_with_family_with_isolates_MED %>%
   filter(level != "dialect" & level != "family") %>%
   full_join(Glottolog_dialects_enriched) %>% 
-  dplyr::select(Name, Glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea, Isolate) -> Glottolog_languages_and_dialects_enriched
+  dplyr::select(Name, Glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_languages_and_dialects_enriched
 
 rm(Glottolog_dialects_enriched, Glottolog_with_family_with_isolates)
 
@@ -168,7 +171,8 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
   left_join(known_areas) %>% 
   full_join(Glottolog_language_leveled) %>% 
   dplyr::select(-AUTOTYP_Glottocode) %>% 
-  rename(AUTOTYP_area = Area)
+  rename(AUTOTYP_area = Area) 
+  
 
 rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
 
