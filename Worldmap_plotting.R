@@ -31,7 +31,10 @@ Glottolog_long_shifted <- Glottolog %>%
 #Adding a column to the df with distinctive colors per family for plotting
 n <- length(unique(Glottolog_long_shifted$Family_name))
 
-color_vector <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)][1:n]
+color_vector <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+
+color_vector <- sample(color_vector, n)
+
 
 Glottolog_long_shifted$family_colors <- color_vector[as.factor(desc(Glottolog_long_shifted $Family_name))]
 

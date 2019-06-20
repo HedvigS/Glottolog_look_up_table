@@ -51,7 +51,7 @@ rm(Glottolog_with_family, Isolates, Glottolog_family)
 #trying to read in directly from the URL. If you haven't got internet or jsut read it in, just read in Glottolog_MED_from_json.tsv at the end
 # read url and convert to data.frame
 Glottolog_json_MED <- jsonlite::fromJSON('https://raw.githubusercontent.com/clld/glottolog3/master/glottolog3/static/ldstatus.json') %>%
-  as.tibble() %>%
+  as_tibble() %>%
   t(.) %>%
   as.data.frame() %>%
   rownames_to_column("Glottocode")
@@ -171,10 +171,16 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
   left_join(known_areas) %>% 
   full_join(Glottolog_language_leveled) %>% 
   dplyr::select(-AUTOTYP_Glottocode) %>% 
-  rename(AUTOTYP_area = Area) 
+  rename(AUTOTYP_area = Area) %>% 
+  rename(glottocode = Glottocode)
   
 
 rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
+
+
+Glottolog_language_leveled_with_autotyp_area$Name_stripped_no_spaces <- Glottolog_language_leveled_with_autotyp_area$Name_stripped %>% 
+  str_replace_all(" ", "_")
+
 
 dir.create("Glottolog_lookup_table_Hedvig_output")
 
