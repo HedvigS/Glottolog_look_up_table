@@ -120,7 +120,7 @@ Glottolog_language_leveled$Name %>%
   str_replace_all("\\(", "") %>%  
   str_replace_all("\\)", "") %>% 
   str_replace_all("\\-", "") %>% 
-  str_replace_all("\\'", "")->  Glottolog_language_leveled$Name_stripped
+  str_replace_all("\\'", "?")->  Glottolog_language_leveled$Name_stripped
 
 ##Adding in areas of linguistic contact from AUTOTYP
 
@@ -141,6 +141,7 @@ AUTOTYP <- read_csv("https://raw.githubusercontent.com/autotyp/autotyp-data/mast
   filter(Glottocode != "toho1245") %>% 
   filter(Glottocode != "kati1270")
 
+#This next bit where we find the autotyp areas of languages was written by Seán Roberts
 # We know the autotyp-area of langauges in autotyp and their long lat. We don't know the autotyp area of languages in Glottolog. We also can't be sure that the long lat of languoids with the same glottoids in autotyp and glottolog have the exact identical long lat. First let's make two datasets, one for autotyp languages (hence lgs where we know the area) and those that we wish to know about, the Glottolog ones.
 lgs_with_known_area <- as.matrix(AUTOTYP[!is.na(AUTOTYP$Area),c("Longitude","Latitude")])
 rownames(lgs_with_known_area) <- AUTOTYP[!is.na(AUTOTYP$Area),]$Glottocode
