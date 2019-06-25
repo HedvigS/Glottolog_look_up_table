@@ -163,7 +163,7 @@ known_areas <- AUTOTYP %>%
   filter(!is.na(Area)) %>% 
   dplyr::select(glottocode, Area) %>% 
   distinct() %>% 
-  dplyr::select(glottocode, everything())
+  dplyr::select(AUTOTYP_glottocode = glottocode, everything())
 
 rm(AUTOTYP)
 
@@ -179,8 +179,8 @@ Glottolog_matched_up <- as.data.frame(unlist(apply(atDist, 2, function(x){names(
   rename(AUTOTYP_glottocode = `unlist(apply(atDist, 2, function(x) {     names(which.min(x)) }))`)
 
 Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>% 
-  rownames_to_column("glottocode") %>%  
-  left_join(known_areas) %>% 
+  rownames_to_column("glottocode") %>%
+  full_join(known_areas) %>% 
   full_join(Glottolog_language_leveled) %>% 
   dplyr::select(-AUTOTYP_glottocode) %>% 
   rename(AUTOTYP_area = Area) 
@@ -189,7 +189,7 @@ n <- length(unique(Glottolog_language_leveled_with_autotyp_area$Family_name_isol
 color_vector <- distinctColorPalette(n)
 
 
-Glottolog_language_leveled_with_autotyp_area$Family_color <- color_vector[as.factor(desc(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct))]
+Glottolog_language_leveled_with_autotyp_area$Family_color <- color_vector[as.factor(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct)]
 
 dir.create("Glottolog_lookup_table_Hedvig_output")
 
@@ -200,4 +200,6 @@ treedb_time <- file.info("treedb.csv")$mtime
 cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. The underlying glottolog data was rendered at", treedb_time ,". More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")       
 
 zip(zipfile = "Glottolog_lookup_table_Hedvig_output", files = "Glottolog_lookup_table_Hedvig_output")
+
+source("Worldmap_plotting.R")
             
