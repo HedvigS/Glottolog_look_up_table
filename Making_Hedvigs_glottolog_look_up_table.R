@@ -9,7 +9,17 @@ options(stringsAsFactors = FALSE)
 #  write_tsv("treedb.tsv")
 
 treedb <- read_csv("treedb.csv") %>% 
-  dplyr::select(Glottocode = id, Macroarea =macroareas, Longitude = longitude, Latitude = latitude, Language_level_ID = dialect_language_id, Name = name, path, Family_ID = family_id, level, Parent_ID = parent_id, iso639_3, countries, endangerment_status)
+  dplyr::select(glottocode = id, Macroarea =macroareas, Longitude = longitude, Latitude = latitude, Language_level_ID = dialect_language_id, Name = name, path, Family_ID = family_id, level, Parent_ID = parent_id, iso639_3, countries, endangerment_status, hid)
+
+
+treedb_has_iso <- treedb %>% 
+  filter(!is.na(iso639_3))
+  
+treedb <- treedb %>% 
+  filter(is.na(iso639_3)) %>%
+  mutate(iso639_3 = hid) %>% 
+  full_join(treedb_has_iso) %>% 
+  dplyr::select(-hid)
 
 ###  inserting the names of the language families
 top_genetic <- treedb %>% 
@@ -19,8 +29,8 @@ top_genetic <- treedb %>%
 
 treedb %>% 
   filter(level == "family") %>%
-  select(Family_ID, Family_name = Name, Family_Glottocode = Glottocode) %>%
-  select(Family_ID = Family_Glottocode, Family_name) %>% 
+  select(Family_ID, Family_name = Name, Family_glottocode = glottocode) %>%
+  select(Family_ID = Family_glottocode, Family_name) %>% 
   full_join(top_genetic)-> Glottolog_family
 
 Glottolog_family %>% 
@@ -54,7 +64,7 @@ Glottolog_json_MED <- jsonlite::fromJSON('https://raw.githubusercontent.com/clld
   as_tibble() %>%
   t(.) %>%
   as.data.frame() %>%
-  rownames_to_column("Glottocode")
+  rownames_to_column("glottocode")
 
 ## out resulting dataframe has 3 columns, glottocode V1 which is the MED and then V2 is a list of all more refs for that langauge, including the one that is MED. Here, we just extract the type that the MED is in V1
 
@@ -66,9 +76,9 @@ Glottolog_json_MED$MED <- lapply(Glottolog_json_MED$MED, function(x) if(identica
 ##the previous df has the cols as lists, which screws with the writing later. Let's just make those into carachter vectors for good measure.
 
 Glottolog_json_MED %>%
-  dplyr::select(Glottocode, desc_status = MED) %>%
+  dplyr::select(glottocode, desc_status = MED) %>%
   mutate(desc_status = as.character(desc_status)) %>%
-  mutate(Glottocode = as.character(Glottocode)) -> Glottolog_MED
+  mutate(glottocode = as.character(glottocode)) -> Glottolog_MED
 
 rm(Glottolog_json_MED)
 
@@ -84,7 +94,7 @@ rm(Glottolog_MED, treedb, Glottolog_with_family_with_isolates)
 
 Glottolog_with_family_with_isolates_MED %>% 
   filter(level == "language") %>%
-  select(Language_level_name = Name, Language_level_ID = Glottocode, Longitude, Latitude, Macroarea, Family_name, Family_ID, countries, desc_status, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_dialect_parents
+  select(Language_level_name = Name, Language_level_ID = glottocode, Longitude, Latitude, Macroarea, Family_name, Family_ID, countries, desc_status, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_dialect_parents
 
 Glottolog_families <- Glottolog_with_family_with_isolates_MED %>% 
   filter(level == "family")
@@ -100,7 +110,7 @@ rm(Glottolog_dialect_parents)
 Glottolog_with_family_with_isolates_MED %>%
   filter(level != "dialect" & level != "family") %>%
   full_join(Glottolog_dialects_enriched) %>% 
-  dplyr::select(Name, Glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_languages_and_dialects_enriched
+  dplyr::select(Name, glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_languages_and_dialects_enriched
 
 rm(Glottolog_dialects_enriched, Glottolog_with_family_with_isolates)
 
@@ -108,7 +118,7 @@ Glottolog_languages_and_dialects_enriched %>%
   filter(level != "dialect") %>%
   dplyr::select(-Language_level_ID) %>% 
   mutate(Language_level_name = Name) %>% 
-  mutate(Language_level_ID = Glottocode) %>% 
+  mutate(Language_level_ID = glottocode) %>% 
   full_join(filter(Glottolog_languages_and_dialects_enriched, level == "dialect")) %>% 
   full_join(Glottolog_families) %>% 
   dplyr::select(-path, -countries, -Family_ID)-> Glottolog_language_leveled
@@ -122,40 +132,43 @@ Glottolog_language_leveled$Name %>%
   str_replace_all("\\-", "") %>% 
   str_replace_all("\\'", "?")->  Glottolog_language_leveled$Name_stripped
 
+Glottolog_language_leveled$Name_stripped %>% 
+  str_replace_all(" ", "_")  ->  Glottolog_language_leveled$Name_stripped_no_spaces
+
 ##Adding in areas of linguistic contact from AUTOTYP
 
 AUTOTYP <- read_csv("https://raw.githubusercontent.com/autotyp/autotyp-data/master/data/Register.csv") %>% 
-  dplyr::select(Glottocode, Area, Longitude, Latitude) %>% 
-  filter(Glottocode != "balk1252") %>% #There's a set of languages in autotyp that have more than one area, for now they're just hardcoded excluded in these lines
-  filter(Glottocode != "east2295") %>% 
-  filter(Glottocode != "indo1316") %>% 
-  filter(Glottocode != "kyer1238") %>% 
-  filter(Glottocode != "mart1256") %>% 
-  filter(Glottocode != "minn1241") %>% 
-  filter(Glottocode != "noga1249") %>% 
-  filter(Glottocode != "oira1263") %>% 
-  filter(Glottocode != "peri1253") %>% 
-  filter(Glottocode != "taha1241") %>% 
-  filter(Glottocode != "tibe1272") %>% 
-  filter(Glottocode != "till1254") %>% 
-  filter(Glottocode != "toho1245") %>% 
-  filter(Glottocode != "kati1270")
+  dplyr::select(glottocode = Glottocode, Area, Longitude, Latitude) %>% 
+  filter(glottocode != "balk1252") %>% #There's a set of languages in autotyp that have more than one area, for now they're just hardcoded excluded in these lines
+  filter(glottocode != "east2295") %>% 
+  filter(glottocode != "indo1316") %>% 
+  filter(glottocode != "kyer1238") %>% 
+  filter(glottocode != "mart1256") %>% 
+  filter(glottocode != "minn1241") %>% 
+  filter(glottocode != "noga1249") %>% 
+  filter(glottocode != "oira1263") %>% 
+  filter(glottocode != "peri1253") %>% 
+  filter(glottocode != "taha1241") %>% 
+  filter(glottocode != "tibe1272") %>% 
+  filter(glottocode != "till1254") %>% 
+  filter(glottocode != "toho1245") %>% 
+  filter(glottocode != "kati1270")
 
 #This next bit where we find the autotyp areas of languages was written by Seán Roberts
 # We know the autotyp-area of langauges in autotyp and their long lat. We don't know the autotyp area of languages in Glottolog. We also can't be sure that the long lat of languoids with the same glottoids in autotyp and glottolog have the exact identical long lat. First let's make two datasets, one for autotyp languages (hence lgs where we know the area) and those that we wish to know about, the Glottolog ones.
 lgs_with_known_area <- as.matrix(AUTOTYP[!is.na(AUTOTYP$Area),c("Longitude","Latitude")])
-rownames(lgs_with_known_area) <- AUTOTYP[!is.na(AUTOTYP$Area),]$Glottocode
+rownames(lgs_with_known_area) <- AUTOTYP[!is.na(AUTOTYP$Area),]$glottocode
 
 known_areas <- AUTOTYP %>% 
   filter(!is.na(Area)) %>% 
-  dplyr::select(Glottocode, Area) %>% 
+  dplyr::select(glottocode, Area) %>% 
   distinct() %>% 
-  dplyr::select(AUTOTYP_Glottocode = Glottocode, everything())
+  dplyr::select(glottocode, everything())
 
 rm(AUTOTYP)
 
 lgs_with_unknown_area <- as.matrix(Glottolog_language_leveled[,c("Longitude","Latitude")])
-rownames(lgs_with_unknown_area) <- Glottolog_language_leveled$Glottocode
+rownames(lgs_with_unknown_area) <- Glottolog_language_leveled$glottocode
 
 # For missing, find area of closest langauge
 atDist <- rdist.earth(lgs_with_known_area,lgs_with_unknown_area, miles = F)
@@ -163,32 +176,46 @@ atDist <- rdist.earth(lgs_with_known_area,lgs_with_unknown_area, miles = F)
 rm(lgs_with_known_area, lgs_with_unknown_area)
 
 Glottolog_matched_up <- as.data.frame(unlist(apply(atDist, 2, function(x){names(which.min(x))})), stringsAsFactors = F) %>% 
-  rename(AUTOTYP_Glottocode = `unlist(apply(atDist, 2, function(x) {     names(which.min(x)) }))`)
+  rename(AUTOTYP_glottocode = `unlist(apply(atDist, 2, function(x) {     names(which.min(x)) }))`)
 
-rm(atDist)
 
 Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>% 
-  rownames_to_column("Glottocode") %>%  
+  rownames_to_column("glottocode") %>%  
   left_join(known_areas) %>% 
   full_join(Glottolog_language_leveled) %>% 
+<<<<<<< HEAD
+  dplyr::select(-AUTOTYP_glottocode) %>% 
+  rename(AUTOTYP_area = Area) 
+=======
   dplyr::select(-AUTOTYP_Glottocode) %>% 
   rename(AUTOTYP_area = Area) %>% 
   rename(glottocode = Glottocode)
+>>>>>>> f1b689a1194a12725d57e39719fd7250933b7215
   
 
-rm(Glottolog_matched_up, Glottolog_language_leveled, known_areas)
+n <- length(unique(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct))
+color_vector <- distinctColorPalette(n)
 
+<<<<<<< HEAD
+Glottolog_language_leveled_with_autotyp_area$Family_color <- color_vector[as.factor(desc(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct))]
+=======
 
 Glottolog_language_leveled_with_autotyp_area$Name_stripped_no_spaces <- Glottolog_language_leveled_with_autotyp_area$Name_stripped %>% 
   str_replace_all(" ", "_")
 
 
 dir.create("Glottolog_lookup_table_Hedvig_output")
+>>>>>>> f1b689a1194a12725d57e39719fd7250933b7215
 
+
+
+dir.create("Glottolog_lookup_table_Hedvig_output")
 
 write_tsv(Glottolog_language_leveled_with_autotyp_area, path = "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_table_Heti_edition.tsv")
 
-cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")            
+treedb_time <- file.info("treedb.csv")$mtime
+
+cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. The underlying glottolog data was rendered at",treedb_time ,". More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")       
 
 zip(zipfile = "Glottolog_lookup_table_Hedvig_output", files = "Glottolog_lookup_table_Hedvig_output")
             
