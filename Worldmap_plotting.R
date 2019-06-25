@@ -12,14 +12,9 @@ Glottolog <- read_tsv("Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_tab
   filter(level == "language") 
 
 Glottolog %>%
-  filter(Isolate == "Yes") %>%
-  mutate(Family_name = "Isolate") -> Isolates
-
-Glottolog %>%
-  filter(!is.na(Family_name)) %>%
-  rbind(Isolates) %>% 
+  filter(!is.na(Family_name_isolates_distinct)) %>%
   filter(Family_name != 'Bookkeeping') %>% 
-  filter(Family_name != 'Unattested') %>% 
+  filter(Family_name != 'Unattested') %>%
   filter(Family_name != 'Artificial Language') %>% 
   filter(Family_name != 'Unclassifiable') %>% 
   filter(Family_name != 'Speech Register')  -> Glottolog
@@ -28,15 +23,6 @@ Glottolog %>%
 Glottolog_long_shifted <- Glottolog %>% 
   mutate(Longitude = if_else(Longitude <= -25, Longitude + 360, Longitude))
 
-#Adding a column to the df with distinctive colors per family for plotting
-n <- length(unique(Glottolog_long_shifted$Family_name))
-
-color_vector <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-
-color_vector <- sample(color_vector, n)
-
-
-Glottolog_long_shifted$family_colors <- color_vector[as.factor(desc(Glottolog_long_shifted $Family_name))]
 
 #Basemap
 basemap <- ggplot(Glottolog_long_shifted ) +
@@ -63,7 +49,7 @@ basemap <- ggplot(Glottolog_long_shifted ) +
   expand_limits(x = Glottolog_long_shifted $Longitude, y = Glottolog_long_shifted $Latitude)
 
 png("plots/Glottolog_all_languages.png", width =1200, height = 700)
-plot(basemap + geom_point(stat = "identity", size = 3,aes(x=Longitude, y=Latitude), fill = Glottolog_long_shifted$family_colors , shape = 21, alpha = 0.4, stroke = 0.4, color = "grey44") +   
+plot(basemap + geom_point(stat = "identity", size = 3,aes(x=Longitude, y=Latitude), fill = Glottolog_long_shifted$Family_color , shape = 21, alpha = 0.4, stroke = 0.4, color = "grey44") +   
        theme(title  = element_text(size = 32)) )
 dev.off()
 

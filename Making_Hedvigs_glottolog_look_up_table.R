@@ -112,7 +112,7 @@ Glottolog_with_family_with_isolates_MED %>%
   full_join(Glottolog_dialects_enriched) %>% 
   dplyr::select(Name, glottocode, iso639_3, level, endangerment_status, desc_status, Parent_ID, Language_level_name, Language_level_ID, Top_genetic_unit_ID = Family_ID, Family_name, Path = path,  Countries = countries, Longitude, Latitude, Macroarea, Isolate, Family_name_isolates_distinct, Top_genetic_unit_ID_isolates_distinct) -> Glottolog_languages_and_dialects_enriched
 
-rm(Glottolog_dialects_enriched, Glottolog_with_family_with_isolates)
+rm(Glottolog_dialects_enriched)
 
 Glottolog_languages_and_dialects_enriched %>% 
   filter(level != "dialect") %>%
@@ -178,36 +178,18 @@ rm(lgs_with_known_area, lgs_with_unknown_area)
 Glottolog_matched_up <- as.data.frame(unlist(apply(atDist, 2, function(x){names(which.min(x))})), stringsAsFactors = F) %>% 
   rename(AUTOTYP_glottocode = `unlist(apply(atDist, 2, function(x) {     names(which.min(x)) }))`)
 
-
 Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>% 
   rownames_to_column("glottocode") %>%  
   left_join(known_areas) %>% 
   full_join(Glottolog_language_leveled) %>% 
-<<<<<<< HEAD
   dplyr::select(-AUTOTYP_glottocode) %>% 
   rename(AUTOTYP_area = Area) 
-=======
-  dplyr::select(-AUTOTYP_Glottocode) %>% 
-  rename(AUTOTYP_area = Area) %>% 
-  rename(glottocode = Glottocode)
->>>>>>> f1b689a1194a12725d57e39719fd7250933b7215
   
-
 n <- length(unique(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct))
 color_vector <- distinctColorPalette(n)
 
-<<<<<<< HEAD
+
 Glottolog_language_leveled_with_autotyp_area$Family_color <- color_vector[as.factor(desc(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct))]
-=======
-
-Glottolog_language_leveled_with_autotyp_area$Name_stripped_no_spaces <- Glottolog_language_leveled_with_autotyp_area$Name_stripped %>% 
-  str_replace_all(" ", "_")
-
-
-dir.create("Glottolog_lookup_table_Hedvig_output")
->>>>>>> f1b689a1194a12725d57e39719fd7250933b7215
-
-
 
 dir.create("Glottolog_lookup_table_Hedvig_output")
 
@@ -215,7 +197,7 @@ write_tsv(Glottolog_language_leveled_with_autotyp_area, path = "Glottolog_lookup
 
 treedb_time <- file.info("treedb.csv")$mtime
 
-cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. The underlying glottolog data was rendered at",treedb_time ,". More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")       
+cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. The underlying glottolog data was rendered at", treedb_time ,". More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")       
 
 zip(zipfile = "Glottolog_lookup_table_Hedvig_output", files = "Glottolog_lookup_table_Hedvig_output")
             

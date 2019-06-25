@@ -11,5 +11,6 @@ pacman::p_load(
   #making maps
   mapdata,
   maptools,
+  randomcoloR,
   maps)
 
