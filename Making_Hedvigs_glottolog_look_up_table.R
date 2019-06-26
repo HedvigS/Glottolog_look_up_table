@@ -186,6 +186,27 @@ Glottolog_language_leveled_with_autotyp_area <- Glottolog_matched_up %>%
   rename(AUTOTYP_area = Area) 
   
 n <- length(unique(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct))
+
+#Below are 3 different ways of finding distinctive colors for the tips. The first 2 glue a bunch of things toegher
+
+# 
+#Colouring method 1
+#If you need more than 73 distinctive colours, use this chunk. It has 433.
+# color_vector <- grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+# 
+# color_vector <- sample(color_vector, n)
+# 
+# vlabels$color_lc <- color_vector[as.factor(desc(vlabels$Family_name))]
+
+#Colouring method 2
+#If you have 74 or fewer colors you need, you could glue together all qualtiative palettes in RColorBrewer
+# qual_col_pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
+#  
+#  col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+#  
+#  color_vector <- sample(col_vector, n)
+
+
 color_vector <- distinctColorPalette(n)
 
 
