@@ -45,6 +45,7 @@ Watch out for the fact that the desc_status and AUTOTYP_area are both rendered f
 * Isolate have a family name and family ID (the name and glottocode of the language) and there is a separate column that distinguishes Isolates from non-Isolates ("Isolate")
 * instead of just dialects having an ID for their parent that is a language, languages also have their own IDs as the "language_level_ID"
 * all dialects inherits meta-data from their language-level parents
+* Family_color is a distinctive colour in HEX code for every family, including seprate ones for each Isolate
 
 **todo**
 * make it possible to run the python lines within R
