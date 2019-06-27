@@ -13,12 +13,12 @@ The result from this script is a folder with two files.
 The meta data file contain two dates. The first date is the time when this script was run and the sheet was generated. The second date is the time when I last updated my clone of the whole glottolog repos and was able to run the treedb.py script and generated the underlying treedb.csv sheed of basic glottolog data.
 That date is the date when I did the following:
 
-First date
-my script https://github.com/HedvigS/Glottolog_look_up_table/blob/master/Making_Hedvigs_glottolog_look_up_table.R
+First date = date of run of my script
+https://github.com/HedvigS/Glottolog_look_up_table/blob/master/Making_Hedvigs_glottolog_look_up_table.R
 
-Second date
-update glottolog repos: https://github.com/glottolog/glottolog
-run treedb.py at the glottolog repos: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py
+Second date = update of glottolog repos and run of treedb.py
+glottolog repos: https://github.com/glottolog/glottolog
+treedb.py at the glottolog repos: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py
 (You can see my notes here for running treedb.py: https://github.com/HedvigS/Glottolog_look_up_table/blob/master/running_treedb_at_glottolog_repos.txt)
 
 The folder is also zipped up for you for convenience. 
