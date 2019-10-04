@@ -46,7 +46,11 @@ basemap <- ggplot(Glottolog_long_shifted ) +
         axis.text.y = element_blank(),
         axis.ticks = element_blank())   +
   coord_map(projection = "vandergrinten", ylim=c(-56,67)) +
-  expand_limits(x = Glottolog_long_shifted $Longitude, y = Glottolog_long_shifted $Latitude)
+#  expand_limits(x = Glottolog_long_shifted $Longitude, y = Glottolog_long_shifted $Latitude) +
+  #  coord_map(projection = "vandergrinten", xlim = c(130, 255), ylim = c(-56, 27)) +
+  xlim(c(110, 255)) +
+  ylim(c(-56, 27))
+
 
 png("plots/Glottolog_all_languages.png", width =1200, height = 700)
 plot(basemap + geom_point(stat = "identity", size = 3,aes(x=Longitude, y=Latitude), fill = Glottolog_long_shifted$Family_color , shape = 21, alpha = 0.4, stroke = 0.4, color = "grey44") +   

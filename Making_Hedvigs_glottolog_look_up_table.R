@@ -206,9 +206,7 @@ n <- length(unique(Glottolog_language_leveled_with_autotyp_area$Family_name_isol
 #  
 #  color_vector <- sample(col_vector, n)
 
-
 color_vector <- distinctColorPalette(n)
-
 
 Glottolog_language_leveled_with_autotyp_area$Family_color <- color_vector[as.factor(Glottolog_language_leveled_with_autotyp_area$Family_name_isolates_distinct)]
 
@@ -218,7 +216,7 @@ write_tsv(Glottolog_language_leveled_with_autotyp_area, path = "Glottolog_lookup
 
 treedb_time <- file.info("treedb.csv")$mtime
 
-cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. The underlying glottolog data was rendered at", treedb_time ,". More information at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")       
+cat(paste("This file was created ", Sys.Date(), "by Hedvig Skirgård based on Glottolog and AUTOTYP data. The underlying glottolog data was rendered at", treedb_time ," with treedb based on a clone of the Glottolog repos from that date. This file is created based on data from glottolog (treedb.csv + MED json) and AUTOTYP-data. More information on the underlying data is available at https://github.com/HedvigS/Glottolog_look_up_table"), file= "Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_meta.txt", sep = "\n")       
 
 zip(zipfile = "Glottolog_lookup_table_Hedvig_output", files = "Glottolog_lookup_table_Hedvig_output")
 
