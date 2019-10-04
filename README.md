@@ -10,16 +10,20 @@ The result from this script is a folder with two files.
 1. Glottolog_lookup_table_Heti_edition.tsv - the actual large table
 2. Glottolog_lookup_meta.txt - short file with the date of when this script was run. 
 
+The meta data file contain two dates. The first date is the time when this script was run and the sheet was generated. The second date is the time when I last updated my clone of the whole glottolog repos and was able to run the treedb.py script and generated the underlying treedb.csv sheed of basic glottolog data.
 That date is the date when I did the following:
 
-1. re-cloned the entire glottolog repos: https://github.com/glottolog/glottolog
-2. ran treedb.py at the glottolog repos: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py
+First date = date of run of my script
+https://github.com/HedvigS/Glottolog_look_up_table/blob/master/Making_Hedvigs_glottolog_look_up_table.R
+
+Second date = update of glottolog repos and run of treedb.py
+glottolog repos: https://github.com/glottolog/glottolog
+treedb.py at the glottolog repos: https://github.com/glottolog/glottolog/blob/master/scripts/treedb.py
 (You can see my notes here for running treedb.py: https://github.com/HedvigS/Glottolog_look_up_table/blob/master/running_treedb_at_glottolog_repos.txt)
-3. rendered the tsv-file with this script: https://github.com/HedvigS/Glottolog_look_up_table/blob/master/Making_Hedvigs_glottolog_look_up_table.R
 
 The folder is also zipped up for you for convenience. 
 
-Watch out for the fact that the desc_status and AUTOTYP_area are both rendered from static files. The URL's need to change with new versions of glottolog and in case AUTOTYP restructure their repos.
+Watch out for the fact that the desc_status and AUTOTYP_area are both rendered from static files (see URLs below). The URL's need to change with new versions of glottolog and in case AUTOTYP restructure their repos.
 
 **Basic meta-data from Glottolog**
 * Longitude/Latitude
@@ -41,6 +45,7 @@ Watch out for the fact that the desc_status and AUTOTYP_area are both rendered f
 * Isolate have a family name and family ID (the name and glottocode of the language) and there is a separate column that distinguishes Isolates from non-Isolates ("Isolate")
 * instead of just dialects having an ID for their parent that is a language, languages also have their own IDs as the "language_level_ID"
 * all dialects inherits meta-data from their language-level parents
+* Family_color is a distinctive colour in HEX code for every family, including seprate ones for each Isolate
 
 **todo**
 * make it possible to run the python lines within R
