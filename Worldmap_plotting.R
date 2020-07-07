@@ -8,11 +8,11 @@ world <- map_data('world', wrap=c(-25,335), ylim=c(-56,80), margin=T)
 
 lakes <- map_data("lakes", wrap=c(-25,335), col="white", border="gray", ylim=c(-55,65), margin=T)
 
-Glottolog <- read_tsv("Glottolog_lookup_table_Hedvig_output/Glottolog_lookup_table_Heti_edition.tsv") %>% 
+Glottolog <- read_tsv("Glottolog_lookup_table_Hedvig_output/Heti_Glottolog_lookup_table_cldf_version.tsv") %>% 
   filter(level == "language") 
 
 Glottolog %>%
-  filter(!is.na(Family_name_isolates_distinct)) %>%
+  filter(!is.na(Family_name)) %>%
   filter(Family_name != 'Bookkeeping') %>% 
   filter(Family_name != 'Unattested') %>%
   filter(Family_name != 'Artificial Language') %>% 
@@ -45,15 +45,12 @@ basemap <- ggplot(Glottolog_long_shifted ) +
         axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank())   +
-  coord_map(projection = "vandergrinten", ylim=c(-56,67)) +
-#  expand_limits(x = Glottolog_long_shifted $Longitude, y = Glottolog_long_shifted $Latitude) +
-  #  coord_map(projection = "vandergrinten", xlim = c(130, 255), ylim = c(-56, 27)) +
-  xlim(c(110, 255)) +
-  ylim(c(-56, 27))
+  coord_map(projection = "vandergrinten") +
+
 
 
 png("plots/Glottolog_all_languages.png", width =1200, height = 700)
-plot(basemap + geom_point(stat = "identity", size = 3,aes(x=Longitude, y=Latitude), fill = Glottolog_long_shifted$Family_color , shape = 21, alpha = 0.4, stroke = 0.4, color = "grey44") +   
+plot(basemap + geom_point(stat = "identity", size = 2.5,aes(x=Longitude, y=Latitude), fill = Glottolog_long_shifted$Family_color , shape = 21, alpha = 0.4, stroke = 0.4, color = "grey44") +   
        theme(title  = element_text(size = 32)) )
 dev.off()
 

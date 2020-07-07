@@ -180,11 +180,11 @@ cldf_with_language_level <- cldf_with_autotyp %>%
 
 Language_level_meta_df <- cldf_with_language_level %>% 
   filter(level == "language") %>%
-  dplyr::select(Language_level_ID = Glottocode, AUTOTYP_area_language_level= AUTOTYP_area, Language_level_longitude = Longitude, Language_level_latitude = Latitude, Isolate)
+  dplyr::select(Language_level_ID = Glottocode, AUTOTYP_area_language_level= AUTOTYP_area, Language_level_longitude = Longitude, Language_level_latitude = Latitude, Isolate, Family_name_isolates_distinct)
 
 dialect_df_enriched <- cldf_with_language_level %>% 
   filter(level == "dialect") %>% 
-  dplyr::select(-Isolate) %>% 
+  dplyr::select(-Isolate, -Family_name_isolates_distinct) %>% 
   left_join(Language_level_meta_df) %>% 
   mutate(Longitude = if_else(is.na(Longitude), Language_level_longitude, Longitude)) %>% 
   mutate(Latitude = if_else(is.na(Latitude), Language_level_latitude, Latitude)) %>% 
@@ -193,9 +193,8 @@ dialect_df_enriched <- cldf_with_language_level %>%
 
 cldf_dialects_enriched <- cldf_with_language_level %>% 
   filter(level != "dialect") %>% 
-  full_join(dialect_df_enriched)
-
-rm(list=setdiff(ls(), c("cldf_dialects_enriched")))
+  full_join(dialect_df_enriched) %>% 
+  mutate(Family_ID = ifelse(Isolate == "Yes", NA, Family_ID))
 
 #making columns with the names of languages, but stripped so it won't cause trouble in applications like SplitsTree
 cldf_dialects_enriched$Name %>% 
@@ -215,10 +214,23 @@ Contact_languages <- read_tsv("Contact_lgs.tsv") %>%
 cldf_with_contact_lgs_marked <- cldf_dialects_enriched %>% 
   left_join(Contact_languages) 
 
+##adding distinct color by language family
+
+n <- length(unique(cldf_with_contact_lgs_marked$Family_ID))
+
+color_vector <- distinctColorPalette(n)
+
+cldf_with_color <- cldf_with_contact_lgs_marked
+
+cldf_with_color$Family_color <- color_vector[as.factor(cldf_with_color$Family_ID)]
+
+cldf_with_color_isolates_marked <- cldf_with_color %>% 
+  mutate(Family_color = ifelse(Isolate == "Yes", "#000000", Family_color))
+
 ##writing it out!!
 
-df_for_writing <- cldf_with_contact_lgs_marked %>% 
-  dplyr::select(Glottocode, Name, level, Family_name, Macroarea, AUTOTYP_area, category, ISO639P3code, Countries, Longitude, Latitude, med, aes, Family_ID_isolates_distinct, Isolate, Language_level_ID, Name_stripped, Name_stripped_no_spaces, classification, subclassification)
+df_for_writing <- cldf_with_color_isolates_marked %>% 
+  dplyr::select(Glottocode, Name, level, Family_name, Macroarea, AUTOTYP_area, category, ISO639P3code, Countries, Longitude, Latitude, med, aes, Family_ID_isolates_distinct, Isolate, Language_level_ID, Name_stripped, Name_stripped_no_spaces, classification, subclassification, Family_color)
 
 df_for_writing %>% 
   write_tsv("Glottolog_lookup_table_Hedvig_output/Heti_Glottolog_lookup_table_cldf_version.tsv")

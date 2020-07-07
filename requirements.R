@@ -7,6 +7,7 @@ pacman::p_load(
   fields, 
   tidyverse,
   jsonlite,
+  reshape2,
   stringr,
   #making maps
   mapdata,
