@@ -230,7 +230,8 @@ cldf_with_color_isolates_marked <- cldf_with_color %>%
 ##writing it out!!
 
 df_for_writing <- cldf_with_color_isolates_marked %>% 
-  dplyr::select(Glottocode, Name, level, Family_name, Macroarea, AUTOTYP_area, category, ISO639P3code, Countries, Longitude, Latitude, med, aes, Family_ID_isolates_distinct, Isolate, Language_level_ID, Name_stripped, Name_stripped_no_spaces, classification, subclassification, Family_color)
+  dplyr::select(Glottocode, Name, level, Family_name, Macroarea, AUTOTYP_area, category, ISO639P3code, Countries, Longitude, Latitude, med, aes, Family_ID_isolates_distinct, Isolate, Language_level_ID, Name_stripped, Name_stripped_no_spaces, classification, subclassification, Family_color) %>% 
+  mutate(Language_level_ID = ifelse(level == "language", Glottocode, Language_level_ID))
 
 df_for_writing %>% 
   write_tsv("Glottolog_lookup_table_Hedvig_output/Heti_Glottolog_lookup_table_cldf_version.tsv", na = "")
