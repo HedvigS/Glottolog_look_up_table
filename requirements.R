@@ -1,17 +1,22 @@
-# Please run this script first to make sure you have all the necessary packages 
-# installed for running the rest of the scripts in this R project
+# installs the necessary packages for these scripts
 
-if (!suppressPackageStartupMessages(require("pacman"))) { install.packages("pacman") }
+if (!suppressPackageStartupMessages(require('groundhog'))) { install.packages('groundhog') }
 
-pacman::p_load(
-  fields, 
-  tidyverse,
-  jsonlite,
-  reshape2,
-  stringr,
+pkgs <- c(
+  'fields', #for geo distance calculations
+  'tidyverse', #for data wrangling
+  'reshape2', #specifially for melt()
+  'stringr',#for some string searching
   #making maps
-  mapdata,
-  maptools,
-  randomcoloR,
-  maps)
+  'mapdata',
+  'maptools',
+  'randomcoloR',
+  'maps', 
+  #wrangling trees
+  'phytools',
+  'ape',
+  'beepr'
+  )
 
+day="2021-03-15"
+groundhog.library(pkgs, day)
