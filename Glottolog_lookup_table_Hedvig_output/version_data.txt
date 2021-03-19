@@ -1,0 +1,1 @@
+This script was run on 2021-03-19 using version v4.3 of Glottolog derived from the raw data files from the GitHub Repos glottolog/glottolog-cldf. The functions used were from packages as they existed on  2021-03-14 , using groundhog-package-versioning 
