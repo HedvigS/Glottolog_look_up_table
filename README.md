@@ -2,8 +2,6 @@
 
 This is a small repos with an R script that cobbles together a large tsv sheet with every languoid in Glottolog (i.e. languages, dialects and families) with various meta data. Besides the "regular" Glottolog meta data (Family, long/lat, Macroarea, Countries, etc) there are also some extra info and modifications, see lists below. 
 
-Besides this repos, you'll also need to have a clone of [glottolog/glottolog-cldf](https://github.com/glottolog/glottolog-cldf) living in the same folder as the folder of this repos.
-
 **Basic meta-data from Glottolog**
 * Longitude/Latitude
 * Level (language/dialect/family)
