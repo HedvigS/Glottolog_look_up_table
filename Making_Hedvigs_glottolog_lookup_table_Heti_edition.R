@@ -28,8 +28,8 @@ rm(values, languages, values_wide)
 top_genetic <- cldf %>% 
   filter(level == "family") %>% 
   filter(is.na(Family_ID)) %>% 
-  select(Family_ID, Family_name = Name, Family_glottocode = Glottocode) %>%
-  select(Family_ID = Family_glottocode, Family_name)
+  dplyr::select(Family_ID, Family_name = Name, Family_glottocode = Glottocode) %>%
+  dplyr::select(Family_ID = Family_glottocode, Family_name)
 
 cldf_with_family <- cldf %>% 
   mutate(Family_ID = if_else(is.na(Family_ID) & level == "family", Glottocode, Family_ID)) %>% 
@@ -215,20 +215,13 @@ cldf_dialects_enriched$Name %>%
 cldf_dialects_enriched$Name_stripped %>% 
   str_replace_all(" ", "_")  ->  cldf_dialects_enriched$Name_stripped_no_spaces
 
-#adding in col for marking contact languages
-Contact_languages <- read_tsv("Contact_lgs.tsv") %>% 
-  mutate(Contact_language = "Yes")
-
-cldf_with_contact_lgs_marked <- cldf_dialects_enriched %>% 
-  left_join(Contact_languages) 
-
 ##adding distinct color by language family
 
-n <- length(unique(cldf_with_contact_lgs_marked$Family_ID))
+n <- length(unique(cldf_dialects_enriched$Family_ID))
 
 color_vector <- distinctColorPalette(n)
 
-cldf_with_color <- cldf_with_contact_lgs_marked
+cldf_with_color <- cldf_dialects_enriched
 
 cldf_with_color$Family_color <- color_vector[as.factor(cldf_with_color$Family_ID)]
 
