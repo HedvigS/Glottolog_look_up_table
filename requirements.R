@@ -1,6 +1,7 @@
 # installs the necessary packages for these scripts
 
 if (!suppressPackageStartupMessages(require('groundhog'))) { install.packages('groundhog') }
+library(groundhog)
 
 pkgs <- c(
   'fields', #for geo distance calculations
@@ -15,8 +16,9 @@ pkgs <- c(
   #wrangling trees
   'phytools',
   'ape',
-  'beepr'
+  'beepr', 
+  'jsonlite'
   )
 
-day="2021-03-15"
+day="2021-03-14"
 groundhog.library(pkgs, day)
