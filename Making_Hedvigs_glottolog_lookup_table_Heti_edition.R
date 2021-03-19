@@ -1,15 +1,23 @@
 source("requirements.R")
 
 options(stringsAsFactors = FALSE)
+glottolog_cldf_json <- jsonlite::read_json("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/cldf-metadata.json")
+
+glottolog_version <- glottolog_cldf_json$`prov:wasDerivedFrom`$`dc:created`
+day_script_run <- Sys.Date() %>% as.character()
+
+c("This script was run on", day_script_run, "using version", glottolog_version, "of Glottolog derived from the raw data files from the GitHub Repos glottolog/glottolog-cldf. The functions used were from packages as they existed on ", day,", using groundhog-package-versioning") %>%  
+  write_lines("Glottolog_lookup_table_Hedvig_output/version_data.txt", sep = " ")
+
 
 #reading in the files as they are found in the CLDF release
-values <- read_csv("../glottolog-cldf/cldf/values.csv", na = c("","<NA>")) %>% 
+values <- read_csv("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/values.csv", na = c("","<NA>")) %>% 
   rename(Glottocode = Language_ID)
 
 values_wide <- values %>% 
   dcast(Glottocode ~ Parameter_ID, value.var = "Value")
 
-languages <- read_csv("../glottolog-cldf/cldf/languages.csv", na = c("","<NA>")) %>% 
+languages <- read_csv("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/languages.csv", na = c("","<NA>")) %>% 
   dplyr::select(-Language_ID, -ID) 
 
 cldf <- full_join(values_wide,languages) 
