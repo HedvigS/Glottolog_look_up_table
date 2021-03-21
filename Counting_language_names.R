@@ -7,7 +7,6 @@ glottolog_lookup_table %>%
   filter(Family_name != 'Bookkeeping') %>% 
   filter(Family_name != 'Unattested') %>% 
   filter(Family_name != 'Artificial Language') %>% 
-  filter(Family_name != 'Unclassifiable') %>% 
   filter(Family_name != 'Speech Register')  %>% 
   mutate(Name_split = str_split(Name, " ")) %>% 
   unnest() %>%  
