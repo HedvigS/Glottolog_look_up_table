@@ -9,7 +9,6 @@ day_script_run <- Sys.Date() %>% as.character()
 c("This script was run on", day_script_run, "using version", glottolog_version, "of Glottolog derived from the raw data files from the GitHub Repos glottolog/glottolog-cldf. The functions used were from packages as they existed on ", day,", using groundhog-package-versioning") %>%  
   write_lines("Glottolog_lookup_table_Hedvig_output/version_data.txt", sep = " ")
 
-
 #reading in the files as they are found in the CLDF release
 values <- read_csv("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/values.csv", na = c("","<NA>")) %>% 
   rename(Glottocode = Language_ID)
@@ -18,41 +17,37 @@ values_wide <- values %>%
   dcast(Glottocode ~ Parameter_ID, value.var = "Value")
 
 languages <- read_csv("https://raw.githubusercontent.com/glottolog/glottolog-cldf/master/cldf/languages.csv", na = c("","<NA>")) %>% 
-  dplyr::select(-Language_ID, -ID) 
+  dplyr::select(-ID) %>% 
+  rename(Language_level_ID = Language_ID) 
 
-cldf <- full_join(values_wide,languages) 
+cldf <- full_join(values_wide,languages) %>% 
+  mutate(Language_level_ID = ifelse(level == "language", Glottocode, Language_level_ID))
 
 rm(values, languages, values_wide)
 
-#adding family_name column
-top_genetic <- cldf %>% 
-  filter(level == "family") %>% 
-  filter(is.na(Family_ID)) %>% 
-  dplyr::select(Family_ID, Family_name = Name, Family_glottocode = Glottocode) %>%
-  dplyr::select(Family_ID = Family_glottocode, Family_name)
+#marking out the isolates
+cldf_with_isolates_marked <- cldf %>% 
+  mutate(Isolate = ifelse(is.na(Family_ID) & level != "family", "Yes", "No")) %>% 
+  mutate(Family_ID_isolates_distinct = ifelse(is.na(Family_ID), Language_level_ID, Family_ID))
 
-cldf_with_family <- cldf %>% 
-  mutate(Family_ID = if_else(is.na(Family_ID) & level == "family", Glottocode, Family_ID)) %>% 
-  full_join(top_genetic)
+cldf_with_isolates_dialects_marked <-cldf_with_isolates_marked %>% 
+  filter(Isolate == "Yes") %>% 
+  dplyr::select(Family_ID_isolates_distinct = Glottocode, Isolate_fam = Isolate) %>% 
+  full_join(cldf_with_isolates_marked) %>% 
+  mutate(Isolate = ifelse(Isolate_fam == "Yes", "Yes", Isolate)) %>% 
+  filter(!is.na(Name)) 
+
+#adding family_name column
+top_genetic <- cldf_with_isolates_dialects_marked %>% 
+  filter(level == "family"|Isolate == "Yes" & level =="language") %>% 
+  filter(is.na(Family_ID)) %>% 
+  dplyr::select(Family_name = Name, Family_ID_isolates_distinct = Glottocode) 
+
+cldf_with_family <- cldf_with_isolates_dialects_marked %>% 
+  left_join(top_genetic) %>% 
+  distinct()
 
 rm(cldf)
-
-#marking out the isolates
-isolates_df <- cldf_with_family %>% 
-  filter(level == "language") %>% 
-  filter(is.na(Family_ID)) %>% 
-  mutate(Family_name_isolates_distinct = Name) %>% 
-  mutate(Family_ID_isolates_distinct = Glottocode) %>% 
-  mutate(Isolate = "Yes")
-
-cldf_with_isolates <- cldf_with_family %>% 
-  filter(level != "language"|!is.na(Family_ID)) %>% 
-  mutate(Family_name_isolates_distinct = Family_name) %>% 
-  mutate(Family_ID_isolates_distinct = Family_ID) %>% 
-  mutate(Isolate = "No") %>%  
-  rbind(isolates_df) 
-
-rm(isolates_df, top_genetic, cldf_with_family)
 
 ##Adding in areas of linguistic contact from AUTOTYP
 
@@ -87,8 +82,8 @@ known_areas <- AUTOTYP %>%
 
 rm(AUTOTYP)
 
-lgs_with_unknown_area <- as.matrix(cldf_with_isolates[,c("Longitude","Latitude")])
-rownames(lgs_with_unknown_area) <- cldf_with_isolates$Glottocode
+lgs_with_unknown_area <- as.matrix(cldf_with_isolates_dialects_marked[,c("Longitude","Latitude")])
+rownames(lgs_with_unknown_area) <- cldf_with_isolates_dialects_marked$Glottocode
 
 # For missing, find area of closest langauge
 atDist <- rdist.earth(lgs_with_known_area,lgs_with_unknown_area, miles = F)
@@ -101,129 +96,30 @@ df_matched_up <- as.data.frame(unlist(apply(atDist, 2, function(x){names(which.m
 cldf_with_autotyp <- df_matched_up %>% 
   rownames_to_column("Glottocode") %>%
   full_join(known_areas) %>% 
-  right_join(cldf_with_isolates) %>% 
+  right_join(cldf_with_family) %>% 
   dplyr::select(-AUTOTYP_glottocode) %>% 
   rename(AUTOTYP_area = Area) 
 
-##adding in a column which tells, for dialects, which is the language leveled parent
-
-Parent_IDs <- cldf_with_autotyp %>% 
-  filter(level == "language") %>% 
-  dplyr::select(Parent_ID = Glottocode, Language_level_ID = Glottocode)
-
-#first tier
-cldf_with_parent_ID <- cldf_with_autotyp %>% 
-  mutate(Parent_ID = str_sub(classification,-8,-1))
-
-Dialects_first_tier <- cldf_with_parent_ID %>% 
-  left_join(Parent_IDs) %>% 
-  filter(level == "dialect")
-
-Dialects_first_tier_solved <- Dialects_first_tier %>% 
-  filter(!is.na(Language_level_ID))
-
-#second tier
-Dialects_second_tier <- Dialects_first_tier %>% 
-  filter(is.na(Language_level_ID)) %>% 
-  dplyr::select(-Language_level_ID) %>% 
-  mutate(Parent_ID_2 = str_sub(classification,-17, -1)  %>% str_sub(start = 1, end = 8)) %>% 
-  left_join(Parent_IDs %>% rename(Parent_ID_2= Parent_ID))
-
-Dialects_second_tier_solved <- Dialects_second_tier %>% 
-  filter(!is.na(Language_level_ID))
-
-#third tier
-Dialects_third_tier <-  Dialects_second_tier %>% 
-  filter(is.na(Language_level_ID)) %>% 
-  dplyr::select(-Language_level_ID) %>% 
-  mutate(Parent_ID_3 = str_sub(classification,-26, -1)  %>% str_sub(start = 1, end = 8)) %>% 
-  left_join(Parent_IDs %>% rename(Parent_ID_3 = Parent_ID))
-
-Dialects_third_tier_solved <- Dialects_third_tier %>% 
-  filter(!is.na(Language_level_ID))
-
-#fourth
-Dialects_fourth_tier <-  Dialects_third_tier %>% 
-  filter(is.na(Language_level_ID)) %>% 
-  dplyr::select(-Language_level_ID) %>% 
-  mutate(Parent_ID_4 = str_sub(classification,-35, -1)  %>% str_sub(start = 1, end = 8)) %>% 
-  left_join(Parent_IDs %>% rename(Parent_ID_4 = Parent_ID))
-
-Dialects_fourth_tier_solved <- Dialects_fourth_tier %>% 
-  filter(!is.na(Language_level_ID))
-
-#fifth
-Dialects_fifth_tier<- Dialects_fourth_tier %>% 
-  filter(is.na(Language_level_ID)) %>% 
-  filter(is.na(Language_level_ID)) %>% 
-  dplyr::select(-Language_level_ID) %>% 
-  mutate(Parent_ID_5 = str_sub(classification,-44, -1)  %>% str_sub(start = 1, end = 8)) %>% 
-  left_join(Parent_IDs %>% rename(Parent_ID_5 = Parent_ID))
-
-Dialects_fifth_tier_solved <- Dialects_fifth_tier %>% 
-  filter(!is.na(Language_level_ID))
-
-#sixth
-Dialects_sixth_tier <- Dialects_fifth_tier %>% 
-  filter(is.na(Language_level_ID)) %>% 
-  dplyr::select(-Language_level_ID) %>% 
-  mutate(Parent_ID_6 = str_sub(classification,-53, -1)  %>% str_sub(start = 1, end = 8)) %>% 
-  left_join(Parent_IDs %>% rename(Parent_ID_6 = Parent_ID))
-
-Dialects_sixth_tier_solved <- Dialects_sixth_tier %>% 
-  filter(!is.na(Language_level_ID))
-
-Dialects_all_tiers_solved <- Dialects_sixth_tier_solved %>% 
-  full_join(Dialects_fifth_tier_solved) %>% 
-  full_join(Dialects_fourth_tier_solved) %>% 
-  full_join(Dialects_third_tier_solved) %>% 
-  full_join(Dialects_second_tier_solved) %>% 
-  full_join(Dialects_first_tier_solved)
-
-cldf_with_language_level <- cldf_with_autotyp %>% 
-  filter(level != "dialect") %>% 
-  full_join(Dialects_all_tiers_solved)
-
-##adding in name, autotyp area and other things to the language level per dialect
-
-Language_level_meta_df <- cldf_with_language_level %>% 
-  filter(level == "language") %>%
-  dplyr::select(Language_level_ID = Glottocode, AUTOTYP_area_language_level= AUTOTYP_area, Language_level_longitude = Longitude, Language_level_latitude = Latitude, Isolate, Family_name_isolates_distinct)
-
-dialect_df_enriched <- cldf_with_language_level %>% 
-  filter(level == "dialect") %>% 
-  dplyr::select(-Isolate, -Family_name_isolates_distinct) %>% 
-  left_join(Language_level_meta_df) %>% 
-  mutate(Longitude = if_else(is.na(Longitude), Language_level_longitude, Longitude)) %>% 
-  mutate(Latitude = if_else(is.na(Latitude), Language_level_latitude, Latitude)) %>% 
-  mutate(AUTOTYP_area = if_else(is.na(AUTOTYP_area), AUTOTYP_area_language_level, AUTOTYP_area)) %>% 
-  dplyr::select(-Language_level_longitude, -Language_level_latitude, -AUTOTYP_area_language_level)
-
-cldf_dialects_enriched <- cldf_with_language_level %>% 
-  filter(level != "dialect") %>% 
-  full_join(dialect_df_enriched) %>% 
-  mutate(Family_ID = ifelse(Isolate == "Yes", NA, Family_ID))
-
 #making columns with the names of languages, but stripped so it won't cause trouble in applications like SplitsTree
-cldf_dialects_enriched$Name %>% 
+cldf_with_autotyp$Name %>% 
   stringi::stri_trans_general("latin-ascii") %>% 
   str_replace_all("\\(", "") %>%  
   str_replace_all("\\)", "") %>% 
   str_replace_all("\\-", "") %>% 
-  str_replace_all("\\'", "?")->  cldf_dialects_enriched$Name_stripped
+  str_replace_all("\\'", "?") ->  cldf_with_autotyp$Name_stripped
 
-cldf_dialects_enriched$Name_stripped %>% 
-  str_replace_all(" ", "_")  ->  cldf_dialects_enriched$Name_stripped_no_spaces
+cldf_with_autotyp$Name_stripped %>% 
+  str_replace_all(" ", "_")  ->  cldf_with_autotyp$Name_stripped_no_spaces
 
 ##adding distinct color by language family
 
-n <- length(unique(cldf_dialects_enriched$Family_ID))
+n <- length(unique(cldf_with_autotyp$Family_ID))
 
 color_vector <- distinctColorPalette(n)
 
-cldf_with_color <- cldf_dialects_enriched
+cldf_with_color <- cldf_with_autotyp
 
-cldf_with_color$Family_color <- color_vector[as.factor(cldf_with_color$Family_ID)]
+cldf_with_color$Family_color <- color_vector[as.factor(cldf_with_autotyp$Family_ID)]
 
 cldf_with_color_isolates_marked <- cldf_with_color %>% 
   mutate(Family_color = ifelse(Isolate == "Yes", "#000000", Family_color))
@@ -236,4 +132,3 @@ df_for_writing <- cldf_with_color_isolates_marked %>%
 
 df_for_writing %>% 
   write_tsv("Glottolog_lookup_table_Hedvig_output/Heti_Glottolog_lookup_table_cldf_version.tsv", na = "")
-
